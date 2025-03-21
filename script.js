@@ -1,27 +1,39 @@
 const apiKey = '0426326c4056b1ce0ebdf3e84c92050b'; // Replace with your key
-const apiUrl = `https://api.the-odds-api.com/v4/sports/cricket_ipl/odds/?apiKey=${apiKey}®ions=uk&markets=h2h`;
+const apiUrl = `https://api.the-odds-api.com/v4/sports/cricket_ipl/odds/?apiKey=${apiKey}&regions=uk&markets=outright`;
 
-let oddsHistory = {}; // Store odds over time
+let oddsHistory = {}; // Store outright odds over time
 let chart;
 
 function fetchOdds() {
   fetch(apiUrl)
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
+      console.log('API Response:', data); // Log raw data
+      if (!Array.isArray(data)) {
+        throw new Error('Data is not an array');
+      }
+
       const now = new Date().toLocaleDateString();
       data.forEach(event => {
-        event.bookmakers[0].markets[0].outcomes.forEach(outcome => {
-          const team = outcome.name;
-          const odds = outcome.price;
-          const percentage = (1 / odds) * 100;
-          if (!oddsHistory[team]) oddsHistory[team] = [];
-          oddsHistory[team].push({ time: now, percentage });
-        });
+        if (event.markets && event.markets[0].key === 'outright') {
+          event.markets[0].outcomes.forEach(outcome => {
+            const team = outcome.name;
+            const odds = outcome.price;
+            const percentage = (1 / odds) * 100;
+            if (!oddsHistory[team]) oddsHistory[team] = [];
+            oddsHistory[team].push({ time: now, percentage });
+          });
+        }
       });
 
       updateChart();
     })
-    .catch(error => console.log('Error fetching odds:', error));
+    .catch(error => console.error('Error fetching odds:', error));
 }
 
 function updateChart() {
@@ -37,7 +49,7 @@ function updateChart() {
   }));
 
   const ctx = document.getElementById('oddsChart').getContext('2d');
-  if (chart) chart.destroy(); // Clear old chart
+  if (chart) chart.destroy();
   chart = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets },
@@ -55,5 +67,5 @@ function updateChart() {
   });
 }
 
-fetchOdds(); // Initial fetch
-setInterval(fetchOdds, 3600000); // Update hourly (3600000ms = 1 hour)
+fetchOdds();
+setInterval(fetchOdds, 86400000); // Daily updates (86400000ms = 24 hours)
