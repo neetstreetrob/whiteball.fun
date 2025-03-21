@@ -1,0 +1,21 @@
+body {
+    background: linear-gradient(#1a1a1a, #333333);
+    font-family: 'Orbitron', sans-serif;
+    color: #fff;
+    margin: 0;
+    padding: 20px;
+  }
+  .container {
+    max-width: 800px;
+    margin: auto;
+    text-align: center;
+  }
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  canvas {
+    border: 2px solid #00ff99;
+    border-radius: 5px;
+    box-shadow: 0 0 10px #00ff99;
+  }
